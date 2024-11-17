@@ -5,71 +5,65 @@
     - store config file
 """
 import os.path
-import sys
-import json
+from pathlib import Path
+from api import *
+from config import *
 
 
-def create_default_config(fp: str):
-    f = open(fp, "x")
-    f.write(
-        """
-        {
-            "installed": [
-            ]
-        }
-        """
-    )
-    f.close()
-
-
-def get_config_file(fp):
-    if not os.path.exists(fp):
-        create_default_config(fp)
-        return get_config_file(fp)
-    with open(fp, "r") as file:
-        return json.loads("".join(file.readlines()))
-
-
-def write_config(fp, config):
-    with open(fp, "w") as file:
-        file.write(config)
+def check_tool_version(tool_name, config):
+    installed = get_installed_tools(config)
 
 
 def print_help():
-    print("help text")
+    print(
+        """
+        Usage:
+        jbpm help               - Show this message
+        jbpm list               - Lists available software
+        jbpm install [name]     - Install software by name
+        jbpm uninstall [name]   - Uninstall software by name
+        """
+    )
 
 
-def print_installed(config):
-    installed = config["installed"]
-    print("Installed software:")
-    if len(installed) == 0:
-        print("none. install using ??")
+def get_os_executable_extension():
+    windows = True
+    if windows:
+        return "-windows.exe"
     else:
-        for x in installed:
-            print(x)
+        return "-linux"
 
 
-def install_software(toolname, toolldict):
-    pass
-
-
-def uninstall_software(toolname, toolldict):
-    pass
+def get_relative_path(path):
+    cwd = Path.cwd()
+    return (cwd / path).resolve()
 
 
 def main():
     # (name: url)
-    all_tools_dict = {"lll": "https://github.com/justinburrill/lll"}
+    all_tools_dict = {"lll.exe": "https://github.com/justinburrill/lll"}
 
     args = sys.argv[1:]
-    fp = os.path.expanduser("~") + "/.jbpmrc"
-    if len(args) > 0:
-        if args[0] in ["-h", "--help"]:
+    config_fp = os.path.expanduser("~") + "/.jbpmrc"
+    if len(args) == 0:
+        print_help()
+
+    if not os.path.exists(config_fp):
+        print("No config found, creating default")
+        create_default_config(config_fp)
+
+    config = get_config_file_lines(config_fp)
+
+    match args[0]:
+        case "-h" | "--help":
             print_help()
             return
+        case _:
+            print(f"unknown argument {args[0]}")
+            return
 
-    config = get_config_file(fp)
-    print_installed(config)
+    # path = save_latest_release_exe("lll.exe", get_relative_path("."))
+    # make_file_executable(path)
 
 
 if __name__ == "__main__":
