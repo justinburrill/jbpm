@@ -1,4 +1,11 @@
 import json
+import os
+from toolmanager import *
+
+
+def reset_config(fp: str):
+    os.remove(fp)
+    create_default_config(fp)
 
 
 def create_default_config(fp: str):
@@ -6,18 +13,29 @@ def create_default_config(fp: str):
     f.write(
         """
 {
-    "installed": [
-    ],
-    "uninstalled": [
-        "lll": null,
-    ]
+    "installed": {
+    },
+    "uninstalled": {
+        "lll": null
+    }
 }
         """
-    )  # "installed" entry would look like: "program_name": v1.0,
+    )
     f.close()
 
 
+def print_config(fp):
+    for line in get_config_file_lines(fp):
+        print(line)
+
+
 def get_config_file_lines(fp):
+    with open(fp, "r") as file:
+        # return json.loads("".join(file.readlines())) // wtf?
+        return file.readlines()
+
+
+def get_config_dict(fp):
     with open(fp, "r") as file:
         return json.loads("".join(file.readlines()))
 
@@ -27,9 +45,5 @@ def write_config(fp, config):
         file.write(config)
 
 
-def get_installed_tools(config):
-    return config["installed"]
-
-
 def check_for_update(config):
-    installed = get_installed_tools(config)
+    installed = get_installed_software(config)
