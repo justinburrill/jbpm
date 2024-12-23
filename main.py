@@ -5,7 +5,10 @@
     - store config file
 """
 import os.path
+import sys
 from pathlib import Path
+
+import file
 from config import *
 
 
@@ -20,13 +23,13 @@ def print_help():
         Usage:
         jbpm help               - Show this message
         jbpm list               - Lists available software
+        jbpm path               - (Windows only) Adds the tool install directory to the windows path
         jbpm install [name]     - Install software by name
         jbpm uninstall [name]   - Uninstall software by name
+        jbpm reset              - Uninstall all software
+        jbpm clean              - Remove all evidence of jbpm
         """
     )
-
-
-
 
 
 def get_relative_path(path):
@@ -35,7 +38,7 @@ def get_relative_path(path):
 
 
 def err_insufficient_args():
-    print("need more args")
+    print("Error: Insufficient arguments.")
 
 
 def get_config_fp() -> str:
@@ -45,15 +48,29 @@ def get_config_fp() -> str:
 def get_config():
     config_fp = get_config_fp()
     if not os.path.exists(config_fp):
-        print("No config found, creating default")
         create_default_config(config_fp)
     return get_config_dict(config_fp)
+
+
+def user_confirmation(prompt: str, default: bool) -> bool:
+    txt = f"{prompt} [{'Y' if default else 'y'}/{'N' if not default else 'n'}]\n"
+    while True:
+        i = input(txt).lower()
+        if i == "":
+            return default
+        if i in ['y', 'yes']:
+            return True
+        elif i in ['n', 'no']:
+            return False
+        else:
+            print("Huh?")
 
 
 def main():
     args = sys.argv[1:]
     if len(args) == 0:
         print_help()
+        return
 
     match args[0].lstrip("-"):
         case "h" | "help":
@@ -63,20 +80,36 @@ def main():
                 err_insufficient_args()
                 return
             tool_name = args[1]
-            install_software(tool_name, get_config())
+            install_software(tool_name, get_config(), os.getcwd())
         case "u" | "uninstall":
             if len(args) < 2:
                 err_insufficient_args()
                 return
             tool_name = args[1]
-            uninstall_software(tool_name)
+            try:
+                uninstall_software(tool_name, get_config())
+            except FileNotFoundError:
+                print("Tool {tool_name} not found.")
         case "l" | "list":
-            print_installed_tools(get_config())
+            print_tools(get_config(), True)
+            print_tools(get_config(), False)
+        case "path":
+            file.add_dir_to_path()
         case "reset":
-            uninstall_all_software(get_config())
-            reset_config(get_config_fp())
+            if not user_confirmation("Reset config and uninstall all software?", False):
+                return
+            reset_config_and_tools(get_config_fp(), get_config())
         case "print":
             print_config(get_config_fp())
+        case "clean":
+            if not user_confirmation("Clear all config files and software?", False):
+                return
+            uninstall_all_software(get_config())
+            os.remove(get_config_fp())
+            dir_path = file.get_system_install_dir()
+            if os.path.exists(dir_path):
+                os.rmdir(dir_path)
+
         case _:
             print(f"unknown argument {args[0]}")
 

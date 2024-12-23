@@ -3,8 +3,9 @@ import os
 from toolmanager import *
 
 
-def reset_config(fp: str):
+def reset_config_and_tools(fp: str, config: dict) -> None:
     os.remove(fp)
+    uninstall_all_software(config)
     create_default_config(fp)
 
 
@@ -47,3 +48,5 @@ def write_config(fp, config):
 
 def check_for_update(config):
     installed = get_installed_software(config)
+    #    TODO:
+    raise NotImplementedError
