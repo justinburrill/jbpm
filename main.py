@@ -6,6 +6,7 @@
 """
 import os.path
 import sys
+import api
 from pathlib import Path
 
 import file
@@ -115,4 +116,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    res = api.get_language_breakdown("lll")
+    print(res)
+    # main()
