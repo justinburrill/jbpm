@@ -13,6 +13,12 @@ import file
 from config import *
 
 
+if __name__ == "__main__":
+    res = api.get_language_breakdown("lll")
+    print(res)
+    # main()
+
+
 def check_tool_version(tool_name, config):
     installed = get_installed_software(config)
     # TODO: fix
@@ -114,8 +120,3 @@ def main():
         case _:
             print(f"unknown argument {args[0]}")
 
-
-if __name__ == "__main__":
-    res = api.get_language_breakdown("lll")
-    print(res)
-    # main()
