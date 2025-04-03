@@ -3,6 +3,8 @@ import platform
 import winreg as reg
 import traceback
 
+from errors import *
+
 
 def get_reg_key():
     key = reg.OpenKey(reg.HKEY_LOCAL_MACHINE,
@@ -21,11 +23,10 @@ def add_dir_to_path():
     new_path = get_system_install_dir()
     try:
         # Open the registry key where system PATH is stored
-        key = None
         try:
             key = get_reg_key()
-        except PermissionError:
-            print("Error: Can't open winreg key due to insufficient permissions.")
+        except PermissionError as err:
+            error("Can't open winreg key due to insufficient permissions.", err)
             return
         # Get the current PATH value
         current_path = reg.QueryValueEx(key, "Path")[0]
@@ -59,8 +60,16 @@ def rename_executable(path: str) -> str:
 
 
 def make_file_executable(path: str):
+    """
+    Uses chmod on provided file to make it executable
+    :param path: Path to the binary file
+    """
+    # get current permissions of the file
     current_mode = os.stat(path).st_mode
-    new_mode = current_mode | (current_mode & 0o444) >> 2  # 😈
+    # 0o444 represents read permissions for owner, group, others
+    # should have current file permissions (read) as well as executable permissions
+    new_mode = current_mode | (current_mode & 0o444) >> 2
+    # apply executable permissions
     os.chmod(path, new_mode)
 
 

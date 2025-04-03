@@ -1,7 +1,7 @@
 import requests
 import os
 import platform
-from exceptions import *
+from errors import *
 
 
 def get_os_executable_extension():

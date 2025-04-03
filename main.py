@@ -3,6 +3,22 @@
 - be able to remove installed programs
 - list installed programs
     - store config file
+
+- dotnet projects should have the following options for installation:
+    - os specific:
+        - self contained executable
+        - framework dependent executable
+    - os agnostic (framework dependent):
+        - .dll that is run with `dotnet xxx.dll`
+
+- powershell scripts should have these options:
+    - download .ps1 and let the user deal with it
+    - install as a module so it has autocomplete and everything in the ps shell
+
+- python scripts:
+    - download .py itself, up to user to run it how they like
+    - shebang it and put it somewhere in the path?
+        - ask user for their python interpreter path? get that from system variables?
 """
 import os.path
 import sys
@@ -119,4 +135,3 @@ def main():
 
         case _:
             print(f"unknown argument {args[0]}")
-
