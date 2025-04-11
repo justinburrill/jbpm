@@ -6,7 +6,7 @@
 
 - dotnet projects should have the following options for installation:
     - os specific:
-        - self contained executable
+        - self-contained executable
         - framework dependent executable
     - os agnostic (framework dependent):
         - .dll that is run with `dotnet xxx.dll`
@@ -27,17 +27,13 @@ from pathlib import Path
 
 import file
 from config import *
-
+from errors import *
 
 if __name__ == "__main__":
-    res = api.get_language_breakdown("lll")
-    print(res)
+    # res = api.get_language_breakdown("lll")
+    # print(res)
     # main()
-
-
-def check_tool_version(tool_name, config):
-    installed = get_installed_software(config)
-    # TODO: fix
+    pass
 
 
 def print_help():
@@ -45,12 +41,14 @@ def print_help():
         """
         Usage:
         jbpm help               - Show this message
+        jbpm update             - Check for updates and new software
+        jbpm update [all|name]  - Install updates
         jbpm list               - Lists available software
-        jbpm path               - (Windows only) Adds the tool install directory to the windows path
+        jbpm addpath            - (Windows only) Adds the tool install directory to the windows path
         jbpm install [name]     - Install software by name
         jbpm uninstall [name]   - Uninstall software by name
-        jbpm reset              - Uninstall all software
-        jbpm clean              - Remove all evidence of jbpm
+        jbpm reset              - Reset config and uninstall all software
+        jbpm clean              - Remove all evidence of jbpm from your system. Goodbye!
         """
     )
 
@@ -60,16 +58,8 @@ def get_relative_path(path):
     return (cwd / path).resolve()
 
 
-def err_insufficient_args():
-    print("Error: Insufficient arguments.")
-
-
-def get_config_fp() -> str:
-    return os.path.expanduser("~") + "/.jbpmrc"
-
-
 def get_config():
-    config_fp = get_config_fp()
+    config_fp = get_config_filepath()
     if not os.path.exists(config_fp):
         create_default_config(config_fp)
     return get_config_dict(config_fp)
@@ -121,14 +111,14 @@ def main():
         case "reset":
             if not user_confirmation("Reset config and uninstall all software?", False):
                 return
-            reset_config_and_tools(get_config_fp(), get_config())
+            reset_config_and_tools(get_config_filepath(), get_config())
         case "print":
-            print_config(get_config_fp())
+            print_config(get_config_filepath())
         case "clean":
             if not user_confirmation("Clear all config files and software?", False):
                 return
             uninstall_all_software(get_config())
-            os.remove(get_config_fp())
+            os.remove(get_config_filepath())
             dir_path = file.get_system_install_dir()
             if os.path.exists(dir_path):
                 os.rmdir(dir_path)

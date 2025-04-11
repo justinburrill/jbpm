@@ -21,13 +21,13 @@ def get_github_base_api_url(repo_name: str) -> str:
     return f"https://api.github.com/repos/justinburrill/{repo_name}"
 
 
-def get_language_breakdown(repo_name: str):
+def get_language_breakdown(repo_name: str) -> dict:
     query = f"{get_github_base_api_url(repo_name)}/languages"
-    print(f"query at {query}")
+    #print(f"query at {query}")
     result = requests.get(query, allow_redirects=True)
     if result.status_code == 404:
         raise Api404Error(f"Couldn't get language breakdown of {repo_name}, probably due to bad request url")
-    return result.json()
+    return dict(result.json())
 
 
 def save_latest_release_exe(repo_name: str, install_path: str) -> str:

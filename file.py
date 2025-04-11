@@ -78,7 +78,7 @@ def get_system_install_dir() -> str:
         case "Windows":
             return r"C:\Program Files\jbpm"
         case _:
-            return "/user/local/bin"
+            return "/usr/local/bin"
 
 
 def move_to_bin_dir(exe_name: str, user_install=False):
