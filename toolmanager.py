@@ -10,7 +10,7 @@ class ProjectType(Enum):
 
 def get_project_type(tool_name) -> ProjectType:
     try:
-        langs = get_language_breakdown(tool_name)
+        langs = fetch_language_breakdown(tool_name)
     except Api404Error as err:
         return ProjectType.Default
     match max(langs, key=langs.get):
@@ -49,20 +49,26 @@ def install_software(tool_name, config, install_path):
             install_software_default(tool_name, config, install_path)
 
 
-def install_software_default(tool_name, config, install_path):
+def install_software_default(repo_name, config, install_path):
     try:
-        path = save_latest_release_exe(tool_name, install_path)
+        exe_name = f"{repo_name}{get_os_executable_extension()}"
+        path = fetch_file_from_latest_release(repo_name, install_path=install_path, file_name=exe_name)
         path = rename_executable(path)
         make_file_executable(path)
         move_to_bin_dir(path)
     except KeyError as err:
-        error(f"No software named {tool_name}.", err)
+        error(f"No software named {repo_name}.", err)
     except PermissionError as err:
         error("Admin permissions required.", err)
 
 
-def install_software_dotnet(tool_name, config, install_path):
-    pass
+def install_software_dotnet(tool_name, config, install_path) -> None:
+    raise NotImplementedError
+
+
+def install_powershell_script() -> None:
+    raise NotImplementedError
+
 
 def uninstall_all_software(config: dict) -> None:
     installed = get_installed_software(config)
@@ -76,6 +82,7 @@ def uninstall_software(tool_name: str, config: dict) -> None:
         error(f"Couldn't find tool {tool_name} to uninstall")
 
     # TODO: actually uninstall it
+    raise NotImplementedError
 
 
 def get_installed_software(config: dict) -> dict:
@@ -84,10 +91,6 @@ def get_installed_software(config: dict) -> dict:
 
 def get_uninstalled_software(config: dict) -> dict:
     return config["uninstalled"]
-
-
-def install_powershell_script() -> None:
-    raise NotImplementedError
 
 
 def print_tools(config: dict, installed: bool) -> None:
