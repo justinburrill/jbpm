@@ -16,7 +16,7 @@ def get_reg_key():
 
 
 # ChatGPT function 💀💀💀💀
-def add_dir_to_path():
+def add_install_dir_to_path():
     if platform.system().lower() != "windows":
         return
 
@@ -26,7 +26,7 @@ def add_dir_to_path():
         try:
             key = get_reg_key()
         except PermissionError as err:
-            error("Can't open winreg key due to insufficient permissions.", err)
+            error_out("Can't open winreg key due to insufficient permissions.", err)
             return
         # Get the current PATH value
         current_path = reg.QueryValueEx(key, "Path")[0]
@@ -47,6 +47,7 @@ def add_dir_to_path():
 
 
 def rename_executable(path: str) -> str:
+    # TODO: document me
     path_without_filename, file_name = os.path.split(path)
     if file_name == "":
         raise ValueError("Provided path is a dir, not a file")
@@ -78,6 +79,7 @@ def get_system_install_dir() -> str:
         case "Windows":
             return r"C:\Program Files\jbpm"
         case _:
+            # TODO: probably shouldn't put them here
             return "/usr/local/bin"
 
 

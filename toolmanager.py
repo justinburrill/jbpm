@@ -31,14 +31,24 @@ def check_tool_version(tool_name, config):
     # TODO: finish
 
 
+def fetch_all_info() -> None:
+    """
+    Updates the config with stuff like current versions and available tools.
+    """
+    # TODO where should i store the master list of stuff to install?
+    raise NotImplementedError
+
+    pass
+
+
 def install_software(tool_name, config, install_path):
     uninstalled = get_uninstalled_software(config)
     installed = get_installed_software(config)
     if tool_name in installed.keys():
-        error(f"Already installed {tool_name}.")
+        error_out(f"Already installed {tool_name}.")
         return
     if tool_name not in uninstalled:
-        error(f"Unknown tool {tool_name}.")
+        error_out(f"Unknown tool {tool_name}.")
         return
     match get_project_type(tool_name):
         case ProjectType.Dotnet:
@@ -57,9 +67,9 @@ def install_software_default(repo_name, config, install_path):
         make_file_executable(path)
         move_to_bin_dir(path)
     except KeyError as err:
-        error(f"No software named {repo_name}.", err)
+        error_out(f"No software named {repo_name}.", err)
     except PermissionError as err:
-        error("Admin permissions required.", err)
+        error_out("Admin permissions required.", err)
 
 
 def install_software_dotnet(tool_name, config, install_path) -> None:
@@ -79,7 +89,7 @@ def uninstall_all_software(config: dict) -> None:
 def uninstall_software(tool_name: str, config: dict) -> None:
     uninstalled = get_uninstalled_software(config)
     if tool_name not in uninstalled.keys():
-        error(f"Couldn't find tool {tool_name} to uninstall")
+        error_out(f"Couldn't find tool {tool_name} to uninstall")
 
     # TODO: actually uninstall it
     raise NotImplementedError

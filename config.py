@@ -26,24 +26,31 @@ def get_config_filepath() -> str:
 def create_default_config() -> dict:
     fp = get_config_filepath()
     try:
-        with open(fp, "x") as f:
-            # note that "null" should mean no preference set
-            # null in the "uninstalled" section because we haven't fetched the data
-            # TODO: generate the "uninstalled" section from some sort of file that keeps tool names and their git links?
-            cfg = {
-                "preferences": {
-                    "dotnet-install-type": None
-                },
-                "installed": {
-                },
-                "uninstalled": {
-                    "lll": None
-                }
+
+        # note that "null" should mean no preference set
+        # null in the "uninstalled" section because we haven't fetched the data
+        # TODO: generate the "uninstalled" section from some sort of file that keeps tool names and their git links?
+        # TODO: powershell default install should be in the same dir as $PROFILE for user install
+        #       and "C:\Program Files\PowerShell\Scripts" for all user install
+        #       view https://stackoverflow.com/a/67576856
+        prefs_dict = {
+            "default-install-location": get_system_install_dir(),
+            "powershell-script-install-location": get_system_install_dir(),
+            "dotnet-install-type": None
+        }
+        cfg = {
+            "preferences": prefs_dict,
+            "installed": {
+            },
+            "uninstalled": {
+                "lll": None
             }
+        }
+        with open(fp, "x") as f:
             f.write(json.dumps(cfg))
-            return cfg
-    except JSONDecodeError:
-        print()
+        return cfg
+    except JSONDecodeError as e:
+        print_error(f"Error in decoding JSON config", e)
 
 
 def user_set_dotnet_install_type(config: dict) -> dict:
@@ -67,10 +74,8 @@ def get_dotnet_install_type(config: dict) -> str | None:
     install_type = ""
     try:
         install_type = config["preferences"]["dotnet-install-type"]
-    except KeyError:
-        # TODO
-        # config screwed up?
-        pass
+    except KeyError as e:
+        raise ConfigError(f"Config missing: {e}")
     return install_type
 
 
@@ -144,3 +149,10 @@ def user_confirmation(prompt: str, *, default: bool) -> bool:
             return False
         else:
             print("Huh?")
+
+
+# TODO: use?
+class Preference:
+    def __init__(self, name, default):
+        self.name = name
+        self.default = default

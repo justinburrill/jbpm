@@ -14,6 +14,7 @@
 - powershell scripts should have these options:
     - download .ps1 and let the user deal with it
     - install as a module so it has autocomplete and everything in the ps shell
+        - import-module in profile
 
 - python scripts:
     - download .py itself, up to user to run it how they like
@@ -29,12 +30,6 @@ import file
 from config import *
 from errors import *
 
-if __name__ == "__main__":
-    # res = api.get_language_breakdown("lll")
-    # print(res)
-    # main()
-    pass
-
 
 def print_help():
     print(
@@ -45,7 +40,7 @@ def print_help():
         jbpm fetch              - Check for updates and new software
         jbpm update [all|name]  - Install updates
         jbpm list               - Lists available software
-        jbpm addpath            - (Windows only) Adds the tool install directory to the windows path
+        jbpm addpath            - (Windows only) Adds the tool install directory to the windows path (you gotta figure it out on Linux)
         jbpm install [name]     - Install software by name
         jbpm uninstall [name]   - Uninstall software by name
         jbpm reset              - Reset config and uninstall all software
@@ -67,15 +62,13 @@ def main():
 
     config = load_config_or_setup_default()
 
-    # TODO: check if config exists and run setup if not
-    if not config_exists():
-        pass
-
     match args[0].lstrip("-"):
         case "h" | "help":
             print_help()
         case "setup":
             user_setup_config(config)
+        case "fetch":
+            fetch_all_info()
         case "i" | "install":
             if len(args) < 2:
                 err_insufficient_args()
@@ -89,20 +82,24 @@ def main():
             tool_name = args[1]
             try:
                 uninstall_software(tool_name, config)
-            except FileNotFoundError:
-                print("Tool {tool_name} not found.")
+            except FileNotFoundError as err:
+                print_error("Tool {tool_name} not found.", err)
         case "l" | "list":
             print_tools(config, True)
             print_tools(config, False)
         case "path":
-            file.add_dir_to_path()
+            file.add_install_dir_to_path()
         case "reset":
             if not user_confirmation("Reset config and uninstall all software?", default=False):
                 return
             reset_config_and_tools(config)
         case "print":
+            print(f"Config (located at {get_config_filepath()}):")
             print_config()
+        case "addpath":
+            add_install_dir_to_path()
         case "clean":
+            raise NotImplementedError
             if not user_confirmation("Clear all config files and software?", default=False):
                 return
             uninstall_all_software(config)
@@ -114,3 +111,12 @@ def main():
 
         case _:
             print(f"unknown argument {args[0]}")
+
+
+if __name__ == "__main__":
+    # res = api.get_language_breakdown("lll")
+    # print(res)
+    try:
+        main()
+    except BaseException as err:
+        print_error(f"Critical failure due to: {err}")
