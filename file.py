@@ -39,25 +39,39 @@ def add_install_dir_to_path():
             reg.SetValueEx(key, "Path", 0, reg.REG_EXPAND_SZ, updated_path)
             print("Path successfully updated.")
         else:
-            print("Path already exists in the system PATH.")
+            print_warning("Path already exists in the system PATH.")
 
         reg.CloseKey(key)
-    except PermissionError:
-        print("Error: Admin powers required.\n", traceback.format_exc())
+    except PermissionError as err:
+        error_out("Admin powers required.",err)
+    except OSError as err:
+        error_out("Couldn't add to path.", err)
+
+
 
 
 def rename_executable(path: str) -> str:
+    """
+    Takes an input filename in the style of release executables like "jformat-windows-sc.exe" and turns it into the
+    expected name like "jformat.exe"
+    :param path: Path to the file to be renamed
+    :return: Updated path
+    """
     # TODO: document me
     path_without_filename, file_name = os.path.split(path)
     if file_name == "":
-        raise ValueError("Provided path is a dir, not a file")
+        raise ValueError(f"Provided path {path} is a dir, not a file")
 
     parts = file_name.replace(".", " .").replace("-", " ").split()
     print(file_name, parts)
     file_name = str(parts[0] + (parts[-1] if len(parts) > 2 else ""))
     new_path = os.path.join(path_without_filename, file_name)
-    os.rename(path, new_path)
-    return new_path
+    try:
+        os.rename(path, new_path)
+        return new_path
+    except OSError as err:
+        error_out("Failed to rename executable.", err)
+
 
 
 def make_file_executable(path: str):
@@ -65,13 +79,16 @@ def make_file_executable(path: str):
     Uses chmod on provided file to make it executable
     :param path: Path to the binary file
     """
-    # get current permissions of the file
-    current_mode = os.stat(path).st_mode
-    # 0o444 represents read permissions for owner, group, others
-    # should have current file permissions (read) as well as executable permissions
-    new_mode = current_mode | (current_mode & 0o444) >> 2
-    # apply executable permissions
-    os.chmod(path, new_mode)
+    try:
+        # get current permissions of the file
+        current_mode = os.stat(path).st_mode
+        # 0o444 represents read permissions for owner, group, others
+        # should have current file permissions (read) as well as executable permissions
+        new_mode = current_mode | (current_mode & 0o444) >> 2
+        # apply executable permissions
+        os.chmod(path, new_mode, follow_symlinks=True)
+    except OSError as err:
+        print_error(f"Failed to make file at '{path}' executable.", err)
 
 
 def get_system_install_dir() -> str:
@@ -83,20 +100,23 @@ def get_system_install_dir() -> str:
             return "/usr/local/bin"
 
 
-def move_to_bin_dir(exe_name: str, user_install=False):
-    # assuming exe is in the cwd
-    folder = get_system_install_dir()
-    if not os.path.isdir(folder):
-        os.mkdir(folder)
-        move_to_bin_dir(exe_name)
-    cwd = os.getcwd()
-    current_exe_path = os.path.join(cwd, exe_name)
-    next_exe_path = os.path.join(folder, exe_name)
-    # if os.path.exists(next_exe_path):
-    #     raise FileExistsError
+def move_to_install_location(exe_name: str, user_install=False):
+    try:
+        # assuming exe is in the cwd
+        folder = get_system_install_dir()
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+            move_to_install_location(exe_name)
+        cwd = os.getcwd()
+        current_exe_path = os.path.join(cwd, exe_name)
+        next_exe_path = os.path.join(folder, exe_name)
+        # if os.path.exists(next_exe_path):
+        #     raise FileExistsError
 
-    print(exe_name, current_exe_path, next_exe_path)
-    os.replace(current_exe_path, next_exe_path)
+        print(exe_name, current_exe_path, next_exe_path)
+        os.replace(current_exe_path, next_exe_path)
+    except OSError as err:
+        print_error(f"Failed to move {exe_name}.", err)
 
 # def count_occurrences_in_string(char, string) -> int:
 #     count = 0

@@ -35,5 +35,5 @@ class TerminalColours(Enum):
     RESET = "\033[0m"
 
     @staticmethod
-    def coloured(text, colour):
+    def coloured(text: str, colour: 'TerminalColours') -> str:
         return f"{colour}{text}{TerminalColours.RESET}"

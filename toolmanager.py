@@ -65,7 +65,7 @@ def install_software_default(repo_name, config, install_path):
         path = fetch_file_from_latest_release(repo_name, install_path=install_path, file_name=exe_name)
         path = rename_executable(path)
         make_file_executable(path)
-        move_to_bin_dir(path)
+        move_to_install_location(path)
     except KeyError as err:
         error_out(f"No software named {repo_name}.", err)
     except PermissionError as err:
@@ -110,7 +110,7 @@ def print_tools(config: dict, installed: bool) -> None:
     else:
         print("Uninstalled software:")
     if len(tools) == 0:
-        print("none. try 'jbpm help'")
+        print("None. try 'jbpm help'")
     else:
         for x in tools:
             print(x)

@@ -12,11 +12,14 @@ def user_setup_config(config: dict) -> dict:
     :param config: Dict representation of the current config
     :return: Updated config
     """
-    config = user_set_dotnet_install_type(config)
-    # TODO: other preferences are set here
-    # TODO: powershell script install location
-    write_config(config)
-    return config
+    try:
+        config = user_set_dotnet_install_type(config)
+        # TODO: other preferences are set here
+        # TODO: powershell script install location
+        write_config(config)
+        return config
+    except KeyError as err:
+        error_out("Issue with the config. Try resetting it, sorry.", ConfigError(err))
 
 
 def get_config_filepath() -> str:
@@ -50,7 +53,7 @@ def create_default_config() -> dict:
             f.write(json.dumps(cfg))
         return cfg
     except JSONDecodeError as e:
-        print_error(f"Error in decoding JSON config", e)
+        error_out(f"Error in decoding JSON config", e)
 
 
 def user_set_dotnet_install_type(config: dict) -> dict:
@@ -148,7 +151,7 @@ def user_confirmation(prompt: str, *, default: bool) -> bool:
         elif i in ['n', 'no']:
             return False
         else:
-            print("Huh?")
+            print_warning("Huh?")
 
 
 # TODO: use?

@@ -110,7 +110,7 @@ def main():
             #    os.rmdir(dir_path)
 
         case _:
-            print(f"unknown argument {args[0]}")
+            print_error(f"unknown argument {args[0]}")
 
 
 if __name__ == "__main__":
@@ -119,4 +119,5 @@ if __name__ == "__main__":
     try:
         main()
     except BaseException as err:
+        # not erroring out here cuz its over anyway
         print_error(f"Critical failure due to: {err}")
